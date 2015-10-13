@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using AuthPoc.DTO.UserInfo;
 
 namespace AuthPoc.Api.Controllers
 {
@@ -11,9 +12,12 @@ namespace AuthPoc.Api.Controllers
     public class ValuesController : ApiController
     {
         // GET api/values
-        public IEnumerable<string> Get()
+        public IEnumerable<ValueDTO> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new List<ValueDTO> {
+                new ValueDTO { Value1="Hej", Value2 = "Svejs"},
+                new ValueDTO { Value1 = "Hej", Value2 = "Då"}
+            };
         }
 
         // GET api/values/5

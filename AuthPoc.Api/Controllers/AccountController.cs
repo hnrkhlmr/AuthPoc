@@ -1,6 +1,13 @@
-﻿using System;
+﻿using AuthPoc.Api.Models;
+using AuthPoc.Api.Providers;
+using AuthPoc.Api.Results;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.OAuth;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -8,14 +15,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OAuth;
-using AuthPoc.Api.Models;
-using AuthPoc.Api.Providers;
-using AuthPoc.Api.Results;
 
 namespace AuthPoc.Api.Controllers
 {
@@ -24,20 +23,31 @@ namespace AuthPoc.Api.Controllers
     public class AccountController : ApiController
     {
         private const string LocalLoginProvider = "Local";
+        private ApplicationUserManager _userManager;
 
         public AccountController()
-            : this(Startup.UserManagerFactory(), Startup.OAuthOptions.AccessTokenFormat)
         {
         }
 
-        public AccountController(UserManager<IdentityUser> userManager,
+        public AccountController(ApplicationUserManager userManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
             UserManager = userManager;
             AccessTokenFormat = accessTokenFormat;
         }
 
-        public UserManager<IdentityUser> UserManager { get; private set; }
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? Request.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
+        
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
 
         // GET api/Account/UserInfo
@@ -67,7 +77,7 @@ namespace AuthPoc.Api.Controllers
         [Route("ManageInfo")]
         public async Task<ManageInfoViewModel> GetManageInfo(string returnUrl, bool generateState = false)
         {
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId<int>());
 
             if (user == null)
             {
@@ -76,7 +86,7 @@ namespace AuthPoc.Api.Controllers
 
             List<UserLoginInfoViewModel> logins = new List<UserLoginInfoViewModel>();
 
-            foreach (IdentityUserLogin linkedAccount in user.Logins)
+            foreach (var linkedAccount in user.Logins)
             {
                 logins.Add(new UserLoginInfoViewModel
                 {
@@ -112,7 +122,7 @@ namespace AuthPoc.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
+            IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId<int>(), model.OldPassword,
                 model.NewPassword);
             IHttpActionResult errorResult = GetErrorResult(result);
 
@@ -133,7 +143,7 @@ namespace AuthPoc.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
+            IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId<int>(), model.NewPassword);
             IHttpActionResult errorResult = GetErrorResult(result);
 
             if (errorResult != null)
@@ -171,7 +181,7 @@ namespace AuthPoc.Api.Controllers
                 return BadRequest("The external login is already associated with an account.");
             }
 
-            IdentityResult result = await UserManager.AddLoginAsync(User.Identity.GetUserId(),
+            IdentityResult result = await UserManager.AddLoginAsync(User.Identity.GetUserId<int>(),
                 new UserLoginInfo(externalData.LoginProvider, externalData.ProviderKey));
 
             IHttpActionResult errorResult = GetErrorResult(result);
@@ -197,11 +207,11 @@ namespace AuthPoc.Api.Controllers
 
             if (model.LoginProvider == LocalLoginProvider)
             {
-                result = await UserManager.RemovePasswordAsync(User.Identity.GetUserId());
+                result = await UserManager.RemovePasswordAsync(User.Identity.GetUserId<int>());
             }
             else
             {
-                result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId(),
+                result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId<int>(),
                     new UserLoginInfo(model.LoginProvider, model.ProviderKey));
             }
 
@@ -245,7 +255,7 @@ namespace AuthPoc.Api.Controllers
                 return new ChallengeResult(provider, this);
             }
 
-            IdentityUser user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
+            var user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
                 externalLogin.ProviderKey));
 
             bool hasRegistered = user != null;
@@ -321,17 +331,13 @@ namespace AuthPoc.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            IdentityUser user = new IdentityUser
-            {
-                UserName = model.UserName
-            };
+            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-            IHttpActionResult errorResult = GetErrorResult(result);
 
-            if (errorResult != null)
+            if (!result.Succeeded)
             {
-                return errorResult;
+                return GetErrorResult(result);
             }
 
             return Ok();
@@ -348,30 +354,25 @@ namespace AuthPoc.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            ExternalLoginData externalLogin = ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity);
-
-            if (externalLogin == null)
+            var info = await Authentication.GetExternalLoginInfoAsync();
+            if (info == null)
             {
                 return InternalServerError();
             }
 
-            IdentityUser user = new IdentityUser
-            {
-                UserName = model.UserName
-            };
-            user.Logins.Add(new IdentityUserLogin
-            {
-                LoginProvider = externalLogin.LoginProvider,
-                ProviderKey = externalLogin.ProviderKey
-            });
-            IdentityResult result = await UserManager.CreateAsync(user);
-            IHttpActionResult errorResult = GetErrorResult(result);
+            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
 
-            if (errorResult != null)
+            IdentityResult result = await UserManager.CreateAsync(user);
+            if (!result.Succeeded)
             {
-                return errorResult;
+                return GetErrorResult(result);
             }
 
+            result = await UserManager.AddLoginAsync(user.Id, info.Login);
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
             return Ok();
         }
 
