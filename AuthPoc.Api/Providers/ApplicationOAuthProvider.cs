@@ -29,7 +29,7 @@ namespace AuthPoc.Api.Providers
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
             var userManager = context.OwinContext.GetUserManager<ApplicationUserManager>();
-
+            
             var user = await userManager.FindAsync(context.UserName, context.Password);
 
             if (user == null)

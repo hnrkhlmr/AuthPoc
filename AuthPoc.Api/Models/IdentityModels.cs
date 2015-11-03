@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Identity.EntityFramework;
+﻿using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace AuthPoc.Api.Models
         {
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
             var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
+            //var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // Add custom user claims here
             return userIdentity;
         }
@@ -45,6 +47,13 @@ namespace AuthPoc.Api.Models
         }
     }
 
+    public class ApplicationRoleStore : RoleStore<ApplicationRole, int, ApplicationUserRole>
+    {
+        public ApplicationRoleStore(ApplicationDbContext context)
+            : base(context)
+        {
+        }
+    }
     public class ApplicationDbContext
     : IdentityDbContext<ApplicationUser, ApplicationRole, int, ApplicationUserLogin, ApplicationUserRole, ApplicationUserClaim>
     {

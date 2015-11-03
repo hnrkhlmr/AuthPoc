@@ -12,6 +12,7 @@ namespace AuthPoc.Api.Controllers
     public class ValuesController : ApiController
     {
         // GET api/values
+        [Route("api/Values/Get")]
         public IEnumerable<ValueDTO> Get()
         {
             return new List<ValueDTO> {

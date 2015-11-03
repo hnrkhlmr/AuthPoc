@@ -16,6 +16,7 @@ namespace AuthPoc.ServiceAccess
         public static string EmailsBaseUrl { get { return GetApiBaseUrlFor("Emails"); } }
         public static string ValuesApiBaseUrl { get { return GetApiBaseUrlFor("Values"); } }
         public static string AccountApiBaseUrl { get { return GetApiBaseUrlFor("Account"); } }
+        public static string RoleApiBaseUrl { get { return GetApiBaseUrlFor("Role"); } }
 
         public static string BaseUrl { get { return GetBaseUrlFor(string.Empty); } }
 

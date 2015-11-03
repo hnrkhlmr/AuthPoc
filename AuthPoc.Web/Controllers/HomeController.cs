@@ -9,17 +9,28 @@ using System.Web;
 using System.Web.Mvc;
 using AuthPoc.ServiceAccess;
 using AuthPoc.ServiceAccess.API;
+using AuthPoc.Web.Models;
 
 namespace AuthPoc.Web.Controllers
 {
+    [Authorize]
     public class HomeController : BaseController
     {        
         public ActionResult Index()
         {
             try
             {
-                var retval = Factory.ValuesWebClient.GetValues();
-                return View(retval);
+                var model = new UsersViewModel();
+                
+                var webClient = Factory.ValuesWebClient;
+                webClient.Token = AuthPocUser.AccessToken;
+                model.Values = webClient.GetValues();
+
+                var accountWebClient = Factory.AccountWebClient;
+                accountWebClient.Token = AuthPocUser.AccessToken;
+                model.Users = accountWebClient.GetUsers();
+
+                return View(model);
 
             }
             catch (ApiException e)
@@ -31,6 +42,7 @@ namespace AuthPoc.Web.Controllers
             }            
         }
 
+        [Authorize(Roles="Admin")]
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

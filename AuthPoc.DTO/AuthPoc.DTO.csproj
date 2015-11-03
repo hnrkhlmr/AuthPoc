@@ -45,7 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Account\AcoountModels.cs" />
+    <Compile Include="Account\ApplicationRoleDTO.cs" />
+    <Compile Include="Account\ApplicationUserDTO.cs" />
+    <Compile Include="Account\ApplicationUserRoleDTO.cs" />
     <Compile Include="Account\RegisterBindingModelDTO.cs" />
+    <Compile Include="Account\RoleModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Token\TokenResponseDTO.cs" />
     <Compile Include="UserInfo\DepartmentDTO.cs" />

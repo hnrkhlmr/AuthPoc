@@ -1,0 +1,31 @@
+﻿@model IEnumerable<AuthPoc.DTO.UserInfo.ValueDTO>
+
+<h4>Values</h4>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Value1)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Value2)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Value1)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Value2)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "EditValue", new { /* id=item.PrimaryKey */ }) |
+            @Html.ActionLink("Details", "DetailsValue", new { /* id=item.PrimaryKey */ }) |
+            @Html.ActionLink("Delete", "DeleteValue", new { /* id=item.PrimaryKey */ })
+        </td>
+    </tr>
+}
+
+</table>

@@ -21,12 +21,36 @@ namespace AuthPoc.Web.Models
             }
         }
 
+        public static int UserId
+        {
+            get
+            {
+                var exists = false;
+                foreach (var item in System.Web.HttpContext.Current.Session.Keys)
+	            {
+		            item.ToString();
+                    if(item.ToString().Equals("userid"))
+                        exists = true;
+	            }
+                if (exists)
+                    return Convert.ToInt32(System.Web.HttpContext.Current.Session["userid"].ToString());
+                else
+                    return 0;
+            }
+        }
         
         public static string UserName
         {
             get 
             {
-                if (System.Web.HttpContext.Current.Session.Count > 0 && !string.IsNullOrEmpty(System.Web.HttpContext.Current.Session["username"].ToString()))
+                var exists = false;
+                foreach (var item in System.Web.HttpContext.Current.Session.Keys)
+                {
+                    item.ToString();
+                    if (item.ToString().Equals("username"))
+                        exists = true;
+                }
+                if (exists)
                     return System.Web.HttpContext.Current.Session["username"].ToString();
                 else
                     return "Unknown";
@@ -38,12 +62,19 @@ namespace AuthPoc.Web.Models
         {
             get
             {
-                if (System.Web.HttpContext.Current.Session.Count > 0 && !string.IsNullOrEmpty(System.Web.HttpContext.Current.Session["ApiAccessToken"].ToString()))
+                var exists = false;
+                foreach (var item in System.Web.HttpContext.Current.Session.Keys)
+                {
+                    item.ToString();
+                    if (item.ToString().Equals("ApiAccessToken"))
+                        exists = true;
+                }
+                if (exists)
                 {
                     return System.Web.HttpContext.Current.Session["ApiAccessToken"].ToString();
                 }
                 else
-                    return "";
+                    return null;
 
             }
             set

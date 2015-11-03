@@ -1,7 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AuthPoc.DTO.Account;
+using AuthPoc.DTO.UserInfo;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuthPoc.Web.Models
 {
+    public class UsersViewModel
+    {
+        public IEnumerable<ApplicationUserDTO> Users { get; set; }
+        public IEnumerable<ValueDTO> Values { get; set; }
+    }
     public class ExternalLoginConfirmationViewModel
     {
         [Required]

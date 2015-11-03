@@ -64,6 +64,7 @@
     <Compile Include="API\ApiException.cs" />
     <Compile Include="API\ApiResultMessage.cs" />
     <Compile Include="API\DepartmentsWebClient.cs" />
+    <Compile Include="API\RoleWebClient.cs" />
     <Compile Include="API\UserInfoWebClient.cs" />
     <Compile Include="API\AccountWebClient.cs" />
     <Compile Include="API\ValuesWebClient.cs" />
@@ -85,6 +86,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

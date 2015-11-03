@@ -15,7 +15,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public IEnumerable<ValueDTO> GetValues()
         {
-            return Get<List<ValueDTO>>();
+            return Get<List<ValueDTO>>("Get");
         }
     }
 }

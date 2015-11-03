@@ -5,6 +5,26 @@ using Newtonsoft.Json;
 namespace AuthPoc.Api.Models
 {
     // Models used as parameters to AccountController actions.
+    public class FindUserByNameModel
+    {
+        public string UserName { get; set; }
+    }
+
+    public class FindUserByEmailModel
+    {
+        public string Email { get; set; }
+    }
+
+    public class UserIdModel
+    {
+        public int UserId { get; set; }
+    }
+
+    public class SetPasswordHashModel
+    {
+        public int UserId { get; set; }
+        public string PasswordHash { get; set; }
+    }
 
     public class AddExternalLoginBindingModel
     {
@@ -79,6 +99,24 @@ namespace AuthPoc.Api.Models
         [DataType(DataType.Password)]
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class SignInBindingModel
+    {
+        [Required]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
 }

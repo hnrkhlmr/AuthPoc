@@ -1,29 +1,56 @@
 ﻿using AuthPoc.DTO.Account;
+using AuthPoc.Web.App_Start;
 using AuthPoc.Web.Models;
 using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Linq;
 
 namespace AuthPoc.Web.Controllers
 {
     [Authorize]
     public class AccountController : BaseController
     {
+
+        private ApplicationSignInManager _signInManager;
+        private ApplicationUserManager _userManager;
+
         public AccountController()
-            : this(new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext())))
         {
         }
 
-        public AccountController(UserManager<ApplicationUser> userManager)
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
+            SignInManager = signInManager;
         }
 
-        public UserManager<ApplicationUser> UserManager { get; private set; }
+        public ApplicationSignInManager SignInManager
+        {
+            get
+            {
+                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+            }
+            private set
+            {
+                _signInManager = value;
+            }
+        }
 
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -40,24 +67,57 @@ namespace AuthPoc.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var tokenRequest = Factory.AuthWebClient.GetToken(model.Email, model.Password);
+                return View(model);
+            }
+            //This doesn't count login failures towards account lockout
+            //To enable password failures to trigger account lockout, change to shouldLockout: true
 
-                System.Web.HttpContext.Current.Response.Cookies.Add(new HttpCookie("ApiAccessToken")
-                {
-                    Value = tokenRequest.AccessToken,
-                    HttpOnly = true,
-                    Expires = tokenRequest.Expires
-                });
+            //if (ModelState.IsValid)
+            //{
+            //    var user = await UserManager.FindAsync(model.Email, model.Password);
+            //    if (user != null)
+            //    {
+            //        await SignInAsync(user, model.RememberMe);
+            //        return RedirectToLocal(returnUrl);
+            //    }
+            //    else
+            //    {
+            //        ModelState.AddModelError("", "Invalid username or password.");
+            //    }
+            //}
 
-                AuthPocUser.AccessToken = tokenRequest.AccessToken;
-                AuthPocUser.UserName = tokenRequest.UserName;
+            var result = SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false).Result;
+            switch (result)
+            {
+                case SignInStatus.Success:
+                    var appUser = UserManager.FindByEmailAsync(model.Email).Result;
+                    var user = User;
+                    var tokenRequest = Factory.AuthWebClient.GetToken(model.Email, model.Password);
 
-                return RedirectToAction("Index", "Home"); //RedirectToLocal(returnUrl);
+                    System.Web.HttpContext.Current.Response.Cookies.Add(new HttpCookie("ApiAccessToken")
+                    {
+                        Value = tokenRequest.AccessToken,
+                        HttpOnly = true,
+                        Expires = tokenRequest.Expires
+                    });
+
+                    AuthPocUser.AccessToken = tokenRequest.AccessToken;
+                    AuthPocUser.UserName = tokenRequest.UserName;
+
+                    return RedirectToAction("Index", "Home"); //return RedirectToLocal(returnUrl);
+                case SignInStatus.LockedOut:
+                    return View("Lockout");
+                case SignInStatus.RequiresVerification:
+                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                case SignInStatus.Failure:
+                default:
+                    ModelState.AddModelError("", "Invalid login attempt.");
+                    return View(model);
             }
 
-            // If we got this far, something failed, redisplay form
+            // If we got this far, something failed, redisplay form 
             return View(model);
         }
 
@@ -79,7 +139,7 @@ namespace AuthPoc.Web.Controllers
             if (ModelState.IsValid)
             {
                 var entity = new RegisterBindingModelDTO() { Email = model.UserName, Password= model.Password };
-                var taskHttpAcionResult = Factory.AccountWebClient.Register(entity);
+                var taskHttpAcionResult = await Factory.AccountWebClient.Register(entity);
                 return RedirectToAction("Index", "Home");
             }
 
@@ -94,7 +154,7 @@ namespace AuthPoc.Web.Controllers
         public async Task<ActionResult> Disassociate(string loginProvider, string providerKey)
         {
             ManageMessageId? message = null;
-            IdentityResult result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId(), new UserLoginInfo(loginProvider, providerKey));
+            IdentityResult result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId<int>(), new UserLoginInfo(loginProvider, providerKey));
             if (result.Succeeded)
             {
                 message = ManageMessageId.RemoveLoginSuccess;
@@ -134,7 +194,7 @@ namespace AuthPoc.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
+                    IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId<int>(), model.OldPassword, model.NewPassword);
                     if (result.Succeeded)
                     {
                         return RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
@@ -156,7 +216,7 @@ namespace AuthPoc.Web.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
+                    IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId<int>(), model.NewPassword);
                     if (result.Succeeded)
                     {
                         return RedirectToAction("Manage", new { Message = ManageMessageId.SetPasswordSuccess });
@@ -172,53 +232,54 @@ namespace AuthPoc.Web.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/LinkLogin
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult LinkLogin(string provider)
-        {
-            // Request a redirect to the external login provider to link a login for the current user
-            return new ChallengeResult(provider, Url.Action("LinkLoginCallback", "Account"), User.Identity.GetUserId());
-        }
+        ////
+        //// POST: /Account/LinkLogin
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult LinkLogin(string provider)
+        //{
+        //    // Request a redirect to the external login provider to link a login for the current user
+        //    return new ChallengeResult(provider, Url.Action("LinkLoginCallback", "Account"), User.Identity.GetUserId<int>());
+        //}
 
-        //
-        // GET: /Account/LinkLoginCallback
-        public async Task<ActionResult> LinkLoginCallback()
-        {
-            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId());
-            if (loginInfo == null)
-            {
-                return RedirectToAction("Manage", new { Message = ManageMessageId.Error });
-            }
-            var result = await UserManager.AddLoginAsync(User.Identity.GetUserId(), loginInfo.Login);
-            if (result.Succeeded)
-            {
-                return RedirectToAction("Manage");
-            }
-            return RedirectToAction("Manage", new { Message = ManageMessageId.Error });
-        }
+        ////
+        //// GET: /Account/LinkLoginCallback
+        //public async Task<ActionResult> LinkLoginCallback()
+        //{
+        //    var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId<int>());
+        //    if (loginInfo == null)
+        //    {
+        //        return RedirectToAction("Manage", new { Message = ManageMessageId.Error });
+        //    }
+        //    var result = await UserManager.AddLoginAsync(User.Identity.GetUserId<int>(), loginInfo.Login);
+        //    if (result.Succeeded)
+        //    {
+        //        return RedirectToAction("Manage");
+        //    }
+        //    return RedirectToAction("Manage", new { Message = ManageMessageId.Error });
+        //}
 
         //
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult LogOff()
+        public async Task<ActionResult> LogOff()
         {
             //AuthenticationManager.SignOut();
 
             try
             {
-                Factory.AccountWebClient.Logout();
+
+                var taskHttpAcionResult = await Factory.AccountWebClient.Logout();
+                AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                //return RedirectToAction("Index", "Home");
             }
             finally
             {
                 System.Web.HttpContext.Current.Response.Cookies.Remove("ApiAccessToken");
                 System.Web.HttpContext.Current.Session.Remove("ApiAccessToken");
+                
             }
-            
-
-
             return RedirectToAction("Index", "Home");
         }
 
@@ -233,7 +294,7 @@ namespace AuthPoc.Web.Controllers
         [ChildActionOnly]
         public ActionResult RemoveAccountList()
         {
-            var linkedAccounts = UserManager.GetLogins(User.Identity.GetUserId());
+            var linkedAccounts = UserManager.GetLogins(User.Identity.GetUserId<int>());
             ViewBag.ShowRemoveButton = HasPassword() || linkedAccounts.Count > 1;
             return (ActionResult)PartialView("_RemoveAccountPartial", linkedAccounts);
         }
@@ -277,7 +338,7 @@ namespace AuthPoc.Web.Controllers
 
         private bool HasPassword()
         {
-            var user = UserManager.FindById(User.Identity.GetUserId());
+            var user = UserManager.FindById(User.Identity.GetUserId<int>());
             if (user != null)
             {
                 return user.PasswordHash != null;

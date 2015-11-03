@@ -3,6 +3,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AuthPoc.Api
 {
@@ -14,6 +16,10 @@ namespace AuthPoc.Api
         {
         }
 
+        public override Task<ClaimsIdentity> CreateIdentityAsync(ApplicationUser user, string authenticationType)
+        {
+            return base.CreateIdentityAsync(user, authenticationType);
+        }
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
             var manager = new ApplicationUserManager(new UserStore<ApplicationUser,
@@ -42,6 +48,24 @@ namespace AuthPoc.Api
             {
                 manager.UserTokenProvider = new DataProtectorTokenProvider<ApplicationUser, int>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
+            return manager;
+        }
+    }
+
+    public class ApplicationRoleManager : RoleManager<ApplicationRole, int>
+    {
+        public ApplicationRoleManager(IRoleStore<ApplicationRole, int> roleStore)
+            : base(roleStore)
+        {
+
+        }
+
+        public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
+        {
+            var manager = new ApplicationRoleManager(new RoleStore<ApplicationRole,
+                int, 
+                ApplicationUserRole>(context.Get<ApplicationDbContext>()));
+            
             return manager;
         }
     }

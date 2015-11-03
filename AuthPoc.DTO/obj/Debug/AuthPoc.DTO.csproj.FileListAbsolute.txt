@@ -1,0 +1,7 @@
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\bin\Debug\AuthPoc.DTO.dll
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\bin\Debug\AuthPoc.DTO.pdb
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\bin\Debug\Newtonsoft.Json.dll
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\bin\Debug\Newtonsoft.Json.xml
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\obj\Debug\AuthPoc.DTO.csprojResolveAssemblyReference.cache
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\obj\Debug\AuthPoc.DTO.dll
+C:\Users\henhol\Documents\Visual Studio 2013\Projects\AuthPoc\AuthPoc.DTO\obj\Debug\AuthPoc.DTO.pdb

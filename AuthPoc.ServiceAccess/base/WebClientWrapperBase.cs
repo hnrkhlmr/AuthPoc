@@ -17,9 +17,11 @@ namespace AuthPoc.ServiceAccess.@base
         //private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly string _baseUrl;
-        private readonly string _token;
+        private string _token;
 
         #endregion
+
+        public string Token { set { _token = value; } }
 
         #region Constructors
 
