@@ -256,23 +256,29 @@ namespace AuthPoc.Web.Models
         public Task AddToRoleAsync(ApplicationUser user, string roleName)
         {
             var factory = new WebClientsFactory();
-            var response = factory.RoleWebClient.
-            return Task.FromResult(response);
+            var response = factory.AccountWebClient.AddToRoleAsync(user.Id, roleName);
+            return response;
         }
 
         public Task<IList<string>> GetRolesAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.GetRolesAsync(user.Id).Result;
+            return Task.FromResult(response);
         }
 
         public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.IsInRoleAsync(user.Id, roleName).Result;
+            return Task.FromResult(response);
         }
 
         public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.RemoveFromRoleAsync(user.Id, roleName);
+            return response;
         }
         #endregion
 

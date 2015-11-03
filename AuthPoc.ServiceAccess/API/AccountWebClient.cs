@@ -182,7 +182,7 @@ namespace AuthPoc.ServiceAccess.API
                 UserId = userId
             };
             var response = Post<Task>("AddToRoleAsync", JsonConvert.SerializeObject(model));
-            return Task.FromResult(response);
+            return response;
         }
 
         public Task<IList<string>> GetRolesAsync(int userId)
@@ -215,7 +215,7 @@ namespace AuthPoc.ServiceAccess.API
                 UserId = userId
             };
             var response = Post<Task>("RemoveFromRoleAsync", JsonConvert.SerializeObject(model));
-            return Task.FromResult(response);
+            return response;
         }
         #endregion
     }

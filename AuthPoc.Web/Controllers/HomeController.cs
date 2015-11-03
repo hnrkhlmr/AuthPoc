@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using AuthPoc.ServiceAccess;
 using AuthPoc.ServiceAccess.API;
 using AuthPoc.Web.Models;
+using AuthPoc.DTO.Account;
 
 namespace AuthPoc.Web.Controllers
 {
@@ -26,9 +27,17 @@ namespace AuthPoc.Web.Controllers
                 webClient.Token = AuthPocUser.AccessToken;
                 model.Values = webClient.GetValues();
 
-                var accountWebClient = Factory.AccountWebClient;
-                accountWebClient.Token = AuthPocUser.AccessToken;
-                model.Users = accountWebClient.GetUsers();
+
+                if (User.IsInRole("Admin"))
+                {
+                    var accountWebClient = Factory.AccountWebClient;
+                    accountWebClient.Token = AuthPocUser.AccessToken;
+                    model.Users = accountWebClient.GetUsers(); 
+                }
+                else
+                {
+                    model.Users = new List<ApplicationUserDTO>();
+                }
 
                 return View(model);
 

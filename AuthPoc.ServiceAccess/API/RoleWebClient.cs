@@ -24,7 +24,7 @@ namespace AuthPoc.ServiceAccess.API
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync(ApplicationRoleDTO role)
+        public Task DeleteAsync(int roleId)
         {
             throw new NotImplementedException();
         }
@@ -38,6 +38,7 @@ namespace AuthPoc.ServiceAccess.API
             var response = Post<ApplicationRoleDTO>("FindByIdAsync", JsonConvert.SerializeObject(model));
             return Task.FromResult(response);
         }
+
         public Task<ApplicationRoleDTO> FindByNameAsync(string roleName)
         {
             var model = new RoleNameModelDTO

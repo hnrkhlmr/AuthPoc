@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace AuthPoc.Api.Controllers
@@ -44,28 +45,41 @@ namespace AuthPoc.Api.Controllers
             throw new NotImplementedException();
         }
 
-        public System.Threading.Tasks.Task CreateAsync(ApplicationRoleDTO role)
+        public Task CreateAsync(ApplicationRoleDTO role)
         {
-            throw new NotImplementedException();
+            var appRole = new ApplicationRole
+            {
+                Id = role.Id,
+                Name = role.Name
+            };
+            var identityResult = RoleManager.CreateAsync(appRole);
+            return identityResult;
         }
 
-        public System.Threading.Tasks.Task DeleteAsync(ApplicationRoleDTO role)
+        public Task DeleteAsync(ApplicationRoleDTO role)
         {
-            throw new NotImplementedException();
+            var appRole = new ApplicationRole
+            {
+                Id = role.Id,
+                Name = role.Name
+            };
+            var identityResult = RoleManager.DeleteAsync(appRole);
+            return identityResult;
         }
 
-        public System.Threading.Tasks.Task<ApplicationRole> FindByIdAsync(int roleId)
+        public Task<ApplicationRole> FindByIdAsync(RoleIdModelDTO model)
         {
-            var result = RoleManager.FindByIdAsync(roleId);
+            var result = RoleManager.FindByIdAsync(model.RoleId);
             return result;
         }
-        public System.Threading.Tasks.Task<ApplicationRole> FindByNameAsync(string roleName)
+
+        public Task<ApplicationRole> FindByNameAsync(RoleNameModelDTO model)
         {
-            var result = RoleManager.FindByNameAsync(roleName);
+            var result = RoleManager.FindByNameAsync(model.RoleName);
             return result;
         }
 
-        public System.Threading.Tasks.Task UpdateAsync(ApplicationRoleDTO role)
+        public Task UpdateAsync(ApplicationRoleDTO role)
         {
             throw new NotImplementedException();
         }

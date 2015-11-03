@@ -1,46 +1,58 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using AuthPoc.ServiceAccess;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace AuthPoc.Web.Models
 {
-    public class ApplicationRoleStore<T> : IQueryableRoleStore<T, int>
-        where T : ApplicationRole
+    public class ApplicationRoleStore<T> : IRoleStore<ApplicationRole, int>
     {
-        public IQueryable<T> Roles
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public System.Threading.Tasks.Task CreateAsync(T role)
+        public Task CreateAsync(ApplicationRole role)
         {
             throw new NotImplementedException();
         }
 
-        public System.Threading.Tasks.Task DeleteAsync(T role)
+        public Task DeleteAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.RoleWebClient.DeleteAsync(role.Id);
+            return response;
         }
 
-        public System.Threading.Tasks.Task<T> FindByIdAsync(int roleId)
+        public Task<ApplicationRole> FindByIdAsync(int roleId)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.RoleWebClient.FindByIdAsync(roleId).Result;
+            var applicationRole = new ApplicationRole
+            {
+                Id = response.Id,
+                Name = response.Name
+            };
+            return Task.FromResult(applicationRole);
         }
-        public System.Threading.Tasks.Task<T> FindByNameAsync(string roleName)
+        public Task<ApplicationRole> FindByNameAsync(string roleName)
         {
-            throw new NotImplementedException();
+            var factory = new WebClientsFactory();
+            var response = factory.RoleWebClient.FindByNameAsync(roleName).Result;
+            var applicationRole = new ApplicationRole
+            {
+                Id = response.Id,
+                Name = response.Name
+            };
+            return Task.FromResult(applicationRole);
         }
 
-        public System.Threading.Tasks.Task UpdateAsync(T role)
+        public Task UpdateAsync(ApplicationRole role)
         {
             throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            
+
         }
     }
 }
