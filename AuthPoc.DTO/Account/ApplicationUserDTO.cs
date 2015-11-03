@@ -23,7 +23,7 @@ namespace AuthPoc.DTO.Account
         public string PasswordHash { get; set; }
         public string PhoneNumber { get; set; }
         public bool PhoneNumberConfirmed { get; set; }
-        //public ICollection<ApplicationUserRoleDTO> Roles { get; }
+        //public IEnumerable<ApplicationUserRoleDTO> Roles { get; set; }
         public string SecurityStamp { get; set; }
         public bool TwoFactorEnabled { get; set; }
         public string UserName { get; set; }
