@@ -17,5 +17,19 @@ namespace AuthPoc.Web
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
+
+        protected void Session_Start()
+        {
+            var cookie = Request.Cookies["ApiAccessToken"];
+
+            if (cookie != null && cookie.Value != null)
+                Session["ApiAccessToken"] = cookie.Value;
+        }
+
+        protected void Session_End()
+        {
+            // Ta bort access token från session
+            Session.Remove("ApiAccessToken");
+        }
     }
 }

@@ -70,23 +70,7 @@ namespace AuthPoc.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
-            }
-            //This doesn't count login failures towards account lockout
-            //To enable password failures to trigger account lockout, change to shouldLockout: true
-
-            //if (ModelState.IsValid)
-            //{
-            //    var user = await UserManager.FindAsync(model.Email, model.Password);
-            //    if (user != null)
-            //    {
-            //        await SignInAsync(user, model.RememberMe);
-            //        return RedirectToLocal(returnUrl);
-            //    }
-            //    else
-            //    {
-            //        ModelState.AddModelError("", "Invalid username or password.");
-            //    }
-            //}
+            }            
 
             var result = SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false).Result;
             switch (result)
@@ -105,6 +89,7 @@ namespace AuthPoc.Web.Controllers
 
                     AuthPocUser.AccessToken = tokenRequest.AccessToken;
                     AuthPocUser.UserName = tokenRequest.UserName;
+                    AuthPocUser.UserId = appUser.Id;
 
                     return RedirectToAction("Index", "Home"); //return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
@@ -263,13 +248,11 @@ namespace AuthPoc.Web.Controllers
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<ActionResult> LogOff()
         {
-            //AuthenticationManager.SignOut();
-
             try
             {
-
                 var taskHttpAcionResult = await Factory.AccountWebClient.Logout();
                 AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 //return RedirectToAction("Index", "Home");
@@ -278,7 +261,6 @@ namespace AuthPoc.Web.Controllers
             {
                 System.Web.HttpContext.Current.Response.Cookies.Remove("ApiAccessToken");
                 System.Web.HttpContext.Current.Session.Remove("ApiAccessToken");
-                
             }
             return RedirectToAction("Index", "Home");
         }

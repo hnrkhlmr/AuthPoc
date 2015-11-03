@@ -37,6 +37,8 @@ namespace AuthPoc.Web.Models
                 else
                     return 0;
             }
+
+            set { System.Web.HttpContext.Current.Session["userid"] = value; }
         }
         
         public static string UserName

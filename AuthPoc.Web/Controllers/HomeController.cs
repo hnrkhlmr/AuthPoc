@@ -20,7 +20,7 @@ namespace AuthPoc.Web.Controllers
         public ActionResult Index()
         {
             try
-            {
+            {                
                 var model = new UsersViewModel();
                 
                 var webClient = Factory.ValuesWebClient;
