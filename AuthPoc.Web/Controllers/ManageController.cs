@@ -9,11 +9,13 @@ using Microsoft.Owin.Security;
 using WebApplication1.Models;
 using AuthPoc.Web.App_Start;
 using AuthPoc.Web.Controllers;
+using AuthPoc.Web.Models;
+using AuthPoc.DTO.Account;
 
 namespace WebApplication1.Controllers
 {
     [Authorize]
-    public class ManageController : Controller
+    public class ManageController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
@@ -230,7 +232,21 @@ namespace WebApplication1.Controllers
             {
                 return View(model);
             }
-            var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId<int>(), model.OldPassword, model.NewPassword);
+            //var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId<int>(), model.OldPassword, model.NewPassword);
+
+            var client = Factory.AccountWebClient;
+            client.Token = AuthPocUser.AccessToken;
+
+            var dtoModel = new ChangePasswordBindingModelDto
+            {
+                ConfirmPassword = model.ConfirmPassword,
+                NewPassword = model.NewPassword,
+                OldPassword = model.OldPassword
+            };
+
+            var response = await client.ChangePassword(dtoModel);
+            var result = response.ExecuteAsync();
+
             if (result.Succeeded)
             {
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId<int>());
@@ -275,52 +291,6 @@ namespace WebApplication1.Controllers
             // If we got this far, something failed, redisplay form
             return View(model);
         }
-
-        //
-        // GET: /Manage/ManageLogins
-        //public async Task<ActionResult> ManageLogins(ManageMessageId? message)
-        //{
-        //    ViewBag.StatusMessage =
-        //        message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
-        //        : message == ManageMessageId.Error ? "An error has occurred."
-        //        : "";
-        //    var user = await UserManager.FindByIdAsync(User.Identity.GetUserId<int>());
-        //    if (user == null)
-        //    {
-        //        return View("Error");
-        //    }
-        //    var userLogins = await UserManager.GetLoginsAsync(User.Identity.GetUserId<int>());
-        //    var otherLogins = AuthenticationManager.GetExternalAuthenticationTypes().Where(auth => userLogins.All(ul => auth.AuthenticationType != ul.LoginProvider)).ToList();
-        //    ViewBag.ShowRemoveButton = user.PasswordHash != null || userLogins.Count > 1;
-        //    return View(new ManageLoginsViewModel
-        //    {
-        //        CurrentLogins = userLogins,
-        //        OtherLogins = otherLogins
-        //    });
-        //}
-
-        //
-        // POST: /Manage/LinkLogin
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult LinkLogin(string provider)
-        //{
-        //    // Request a redirect to the external login provider to link a login for the current user
-        //    return new AccountController.ChallengeResult(provider, Url.Action("LinkLoginCallback", "Manage"), User.Identity.GetUserId<int>());
-        //}
-
-        ////
-        //// GET: /Manage/LinkLoginCallback
-        //public async Task<ActionResult> LinkLoginCallback()
-        //{
-        //    var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId<int>());
-        //    if (loginInfo == null)
-        //    {
-        //        return RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
-        //    }
-        //    var result = await UserManager.AddLoginAsync(User.Identity.GetUserId<int>(), loginInfo.Login);
-        //    return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
-        //}
 
         protected override void Dispose(bool disposing)
         {

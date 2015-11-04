@@ -47,10 +47,10 @@ namespace AuthPoc.Api.Migrations
             var pw = new PasswordHasher();
 
             context.Users.AddOrUpdate(u => u.Email,
-                new ApplicationUser { UserName = nameAdmin, Email = nameAdmin, PasswordHash = pw.HashPassword(password), LockoutEnabled = false, SecurityStamp = Guid.NewGuid().ToString() });
+                new ApplicationUser { UserName = nameAdmin, Email = nameAdmin, PasswordHash = pw.HashPassword(password), LockoutEnabled = true, SecurityStamp = Guid.NewGuid().ToString() });
 
             context.Users.AddOrUpdate(u => u.Email,
-                new ApplicationUser { UserName = nameUser, Email = nameUser, PasswordHash = pw.HashPassword(password), LockoutEnabled = false, SecurityStamp = Guid.NewGuid().ToString() });
+                new ApplicationUser { UserName = nameUser, Email = nameUser, PasswordHash = pw.HashPassword(password), LockoutEnabled = true, SecurityStamp = Guid.NewGuid().ToString() });
 
             // Add user admin to Role Admin if not already added
             var role = context.Roles.First(r => r.Name.Equals(roleAdmin)); //  .Find(new[] {"Id", roleAdmin} );

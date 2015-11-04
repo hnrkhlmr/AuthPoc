@@ -14,6 +14,7 @@ namespace AuthPoc.Web.Models
         public string PasswordHash { get; set; }
         public string PhoneNumber { get; set; }
         public bool PhoneNumberConfirmed { get; set; }
+        public int AccessFailedCount { get; set; }
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser, int> manager)
         {
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
@@ -21,6 +22,8 @@ namespace AuthPoc.Web.Models
             // Add custom user claims here
             return userIdentity;
         }
+
+        public bool LockoutEnabled { get; set; }
     }
 
     public class ApplicationRole : IRole<int>

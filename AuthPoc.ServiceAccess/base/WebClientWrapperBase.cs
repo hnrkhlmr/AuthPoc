@@ -86,7 +86,7 @@ namespace AuthPoc.ServiceAccess.@base
                 ExecuteStreamingRequest<T>(path, "DELETE");
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 var baseType = typeof(T).BaseType;
 

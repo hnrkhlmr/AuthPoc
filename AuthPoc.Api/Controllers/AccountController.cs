@@ -68,7 +68,9 @@ namespace AuthPoc.Api.Controllers
                     Id = user.Id,
                     PhoneNumber = user.PhoneNumber,
                     PhoneNumberConfirmed = user.PhoneNumberConfirmed,
-                    UserName = user.UserName
+                    UserName = user.UserName,
+                    LockoutEnabled = user.LockoutEnabled,
+                    AccessFailedCount = user.AccessFailedCount
                 };
                 dtoUsers.Add(dtoUser);
             }
@@ -92,6 +94,7 @@ namespace AuthPoc.Api.Controllers
         }
 
         #region UserManager Implementations
+
         [AllowAnonymous]
         [HttpPost]
         [Route("api/Account/FindByNameAsync")]
@@ -190,24 +193,6 @@ namespace AuthPoc.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        [Route("api/Account/GetLockoutEnabledAsync")]
-        public Task<bool> GetLockoutEnabledAsync(UserIdModel model)
-        {
-            var lockout = UserManager.GetLockoutEnabledAsync(model.UserId);
-            return lockout;
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("api/Account/GetLockoutEndDateAsync")]
-        public Task<DateTimeOffset> GetLockoutEndDateAsync(UserIdModel model)
-        {
-            var dateTimeOffset = UserManager.GetLockoutEndDateAsync(model.UserId);
-            return dateTimeOffset;
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
         [Route("api/Account/GetPasswordHashAsync")]
         public async Task<string> GetPasswordHashAsync(UserIdModel model)
         {
@@ -232,7 +217,43 @@ namespace AuthPoc.Api.Controllers
             return email;
         }
 
+        #region LockOutStore
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("api/Account/GetLockoutEnabledAsync")]
+        public Task<bool> GetLockoutEnabledAsync(UserIdModel model)
+        {
+            var lockout = UserManager.GetLockoutEnabledAsync(model.UserId);
+            return lockout;
+        }
 
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("api/Account/SetLockoutEnabledAsync")]
+        public Task SetLockoutEnabledAsync(SetLockoutEnabledModel model)
+        {
+            var response = UserManager.SetLockoutEnabledAsync(model.UserId, model.Enabled);
+            return Task.FromResult(response);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("api/Account/GetLockoutEndDateAsync")]
+        public Task<DateTimeOffset> GetLockoutEndDateAsync(UserIdModel model)
+        {
+            var dateTimeOffset = UserManager.GetLockoutEndDateAsync(model.UserId);
+            return dateTimeOffset;
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("api/Account/SetLockoutEndDateAsync")]
+        public Task SetLockoutEndDateAsync(SetLockoutEndModel model)
+        {
+            var response = UserManager.SetLockoutEndDateAsync(model.UserId, model.LockoutEnd);
+            return Task.FromResult(response);
+        }
+        
         [AllowAnonymous]
         [HttpPost]
         [Route("api/Account/GetAccessFailedCountAsync")]
@@ -244,18 +265,40 @@ namespace AuthPoc.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("api/Account/IncrementAccessFailedCountAsync")]
+        public Task<int> IncrementAccessFailedCountAsync(UserIdModel model)
+        {
+            var user = UserManager.FindByIdAsync(model.UserId).Result;
+            user.AccessFailedCount++;
+            return Task.FromResult(user.AccessFailedCount);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("api/Account/ResetAccessFailedCountAsync")]
+        public Task ResetAccessFailedCountAsync(UserIdModel model)
+        {
+            var response = UserManager.ResetAccessFailedCountAsync(model.UserId);
+            return Task.FromResult(response);
+        }
+
+        #endregion
+
+        #region TwoFactorEnabled
+        [AllowAnonymous]
+        [HttpPost]
         [Route("api/Account/GetTwoFactorEnabledAsync")]
         public Task<bool> GetTwoFactorEnabledAsync(UserIdModel model)
         {
             var enabled = UserManager.GetTwoFactorEnabledAsync(model.UserId);
             return enabled;
         }
-#endregion
+        #endregion
 
         #region RoleStore
         [HttpPost]
         [Route("api/Account/AddToRoleAsync")]
-        public Task AddToRoleAsync(UserRoleModelDTO model)
+        public Task AddToRoleAsync(UserRoleModelDto model)
         {
             var response = UserManager.AddToRoleAsync(model.UserId, model.RoleName).Result;
             return Task.FromResult(response);
@@ -273,7 +316,7 @@ namespace AuthPoc.Api.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("api/Account/IsInRoleAsync")]
-        public Task<bool> IsInRoleAsync(UserRoleModelDTO model)
+        public Task<bool> IsInRoleAsync(UserRoleModelDto model)
         {
             var response = UserManager.IsInRoleAsync(model.UserId, model.RoleName).Result;
             return Task.FromResult(response);
@@ -281,13 +324,15 @@ namespace AuthPoc.Api.Controllers
 
         [HttpPost]
         [Route("api/Account/RemoveFromRoleAsync")]
-        public Task RemoveFromRoleAsync(UserRoleModelDTO model)
+        public Task RemoveFromRoleAsync(UserRoleModelDto model)
         {
             var response = UserManager.RemoveFromRoleAsync(model.UserId, model.RoleName).Result;
             return Task.FromResult(response);
         }
         #endregion
 
+        #endregion
+        
         // POST api/Account/Logout
         [Route("api/Account/Logout")]
         public IHttpActionResult Logout()
@@ -338,7 +383,8 @@ namespace AuthPoc.Api.Controllers
         }
 
         // POST api/Account/ChangePassword
-        [Route("ChangePassword")]
+        [HttpPost]
+        [Route("api/Account/ChangePassword")]
         public async Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModel model)
         {
             if (!ModelState.IsValid)

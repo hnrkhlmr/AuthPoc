@@ -6,30 +6,39 @@ using System.Threading.Tasks;
 
 namespace AuthPoc.DTO.Account
 {
-    public class FindUserByNameModelDTO
+    public class FindUserByNameModelDto
     {
         public string UserName { get; set; }
     }
 
-    public class FindUserByEmailModelDTO
+    public class FindUserByEmailModelDto
     {
         public string Email { get; set; }
     }
 
-    public class UserIdModelDTO
+    public class UserIdModelDto
     {
         public int UserId { get; set; }
     }
 
-    public class SetPasswordHashModelDTO
+    public class SetPasswordHashModelDto
     {
         public int UserId { get; set; }
         public string PasswordHash { get; set; }
     }
 
-    public class UserRoleModelDTO
+    public class UserRoleModelDto
     {
         public int UserId { get; set; }
         public string RoleName { get; set; }
+    }
+
+    public class ChangePasswordBindingModelDto
+    {
+        public string OldPassword { get; set; }
+
+        public string NewPassword { get; set; }
+
+        public string ConfirmPassword { get; set; }
     }
 }

@@ -17,6 +17,95 @@ namespace AuthPoc.Web.Models
         IUserRoleStore<ApplicationUser, int>
     {
 
+        #region Implementations of IUserStore
+        public Task CreateAsync(ApplicationUser user)
+        {
+            var dtoUser = new ApplicationUserDTO
+            {
+                Email = user.Email,
+                EmailConfirmed = user.EmailConfirmed,
+                PasswordHash = user.PasswordHash,
+                PhoneNumber = user.PhoneNumber,
+                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                UserName = user.UserName,
+                LockoutEnabled = true                
+            };
+
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.CreateAsync(dtoUser);
+
+            return Task.FromResult<Object>(null);
+        }
+
+        public Task DeleteAsync(ApplicationUser user)
+        {
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.DeleteAsync(user.Id);
+
+            return Task.FromResult<Object>(null);
+        }
+        
+        public Task<ApplicationUser> FindByIdAsync(int userId)
+        {
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.FindByIdAsync(userId).Result;
+
+            if (response == null)
+                return Task.FromResult<ApplicationUser>(null);
+            var user = new ApplicationUser();
+            user.Email = response.Email;
+            user.EmailConfirmed = response.EmailConfirmed;
+            user.Id = response.Id;
+            user.PasswordHash = response.PasswordHash;
+            user.PhoneNumber = response.PhoneNumber;
+            user.PhoneNumberConfirmed = response.PhoneNumberConfirmed;
+            user.UserName = response.UserName;
+            user.LockoutEnabled = response.LockoutEnabled;
+            user.AccessFailedCount = response.AccessFailedCount;
+
+            return Task.FromResult<ApplicationUser>(user);
+        }
+
+        public Task<ApplicationUser> FindByNameAsync(string userName)
+        {
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.FindByNameAsync(userName).Result;
+
+            if (response == null)
+                return Task.FromResult<ApplicationUser>(null);
+            var user = new ApplicationUser();
+            user.Email = response.Email;
+            user.EmailConfirmed = response.EmailConfirmed;
+            user.Id = response.Id;
+            user.PasswordHash = response.PasswordHash;
+            user.PhoneNumber = response.PhoneNumber;
+            user.PhoneNumberConfirmed = response.PhoneNumberConfirmed;
+            user.UserName = response.UserName;
+            user.LockoutEnabled = response.LockoutEnabled;
+            user.AccessFailedCount = response.AccessFailedCount;
+
+            return Task.FromResult<ApplicationUser>(user);
+        }
+        public Task UpdateAsync(ApplicationUser user)
+        {
+            var dtoUser = new ApplicationUserDTO
+            {
+                Email = user.Email,
+                EmailConfirmed = user.EmailConfirmed,
+                PasswordHash = user.PasswordHash,
+                PhoneNumber = user.PhoneNumber,
+                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                UserName = user.UserName,
+                LockoutEnabled = user.LockoutEnabled,
+                AccessFailedCount = user.AccessFailedCount,
+                Id = user.Id
+            };
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.UpdateAsync(dtoUser);
+            return Task.FromResult(response);
+        }
+        #endregion
+
         #region Implementations of IUserPasswordStore
         public Task<string> GetPasswordHashAsync(ApplicationUser user)
         {
@@ -44,101 +133,6 @@ namespace AuthPoc.Web.Models
         }
         #endregion
 
-        public void Dispose()
-        {
-            //var tokenRequest = Factory.AuthWebClient.GetToken(model.Email, model.Password);
-
-            //System.Web.HttpContext.Current.Response.Cookies.Add(new HttpCookie("ApiAccessToken")
-            //{
-            //    Value = tokenRequest.AccessToken,
-            //    HttpOnly = true,
-            //    Expires = tokenRequest.Expires
-            //});
-            //System.Web.HttpContext.Current.Session["Users"] = null;
-        }
-
-        #region Implementations of IUserStore
-        public Task CreateAsync(ApplicationUser user)
-        {
-            var dtoUser = new ApplicationUserDTO
-            {
-                Email = user.Email,
-                EmailConfirmed = user.EmailConfirmed,
-                PasswordHash = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
-                UserName = user.UserName
-            };
-
-            var factory = new WebClientsFactory();
-            var response = factory.AccountWebClient.CreateAsync(dtoUser);
-
-            return Task.FromResult<Object>(null);
-        }
-
-        public Task DeleteAsync(ApplicationUser user)
-        {
-
-            var users = Helper.DeserializeFromXML<List<ApplicationUser>>();
-            users.Remove(user);
-            Helper.SerializeToXML<List<ApplicationUser>>(users);
-            return Task.FromResult(0);
-        }
-        
-        public Task<ApplicationUser> FindByIdAsync(int userId)
-        {
-            var factory = new WebClientsFactory();
-            var response = factory.AccountWebClient.FindByIdAsync(userId).Result;
-
-            if (response == null)
-                return Task.FromResult<ApplicationUser>(null);
-            var user = new ApplicationUser();
-            user.Email = response.Email;
-            user.EmailConfirmed = response.EmailConfirmed;
-            user.Id = response.Id;
-            user.PasswordHash = response.PasswordHash;
-            user.PhoneNumber = response.PhoneNumber;
-            user.PhoneNumberConfirmed = response.PhoneNumberConfirmed;
-            user.UserName = response.UserName;
-
-            return Task.FromResult<ApplicationUser>(user);
-        }
-
-        public Task<ApplicationUser> FindByNameAsync(string userName)
-        {
-            var factory = new WebClientsFactory();
-            var response = factory.AccountWebClient.FindByNameAsync(userName).Result;
-
-            if (response == null)
-                return Task.FromResult<ApplicationUser>(null);
-            var user = new ApplicationUser();
-            user.Email = response.Email;
-            user.EmailConfirmed = response.EmailConfirmed;
-            user.Id = response.Id;
-            user.PasswordHash = response.PasswordHash;
-            user.PhoneNumber = response.PhoneNumber;
-            user.PhoneNumberConfirmed = response.PhoneNumberConfirmed;
-            user.UserName = response.UserName;
-
-            return Task.FromResult<ApplicationUser>(user);
-        }
-        public Task UpdateAsync(ApplicationUser user)
-        {
-            var dtoUser = new ApplicationUserDTO
-            {
-                Email = user.Email,
-                EmailConfirmed = user.EmailConfirmed,
-                PasswordHash = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
-                UserName = user.UserName
-            };
-            var factory = new WebClientsFactory();
-            var response = factory.AccountWebClient.UpdateAsync(dtoUser);
-            return Task.FromResult(response);
-        }
-#endregion
-
         #region Implementations of IUserEmailStore
         public Task<ApplicationUser> FindByEmailAsync(string email)
         {
@@ -155,6 +149,8 @@ namespace AuthPoc.Web.Models
             user.PhoneNumber = response.PhoneNumber;
             user.PhoneNumberConfirmed = response.PhoneNumberConfirmed;
             user.UserName = response.UserName;
+            user.LockoutEnabled = response.LockoutEnabled;
+            user.AccessFailedCount = response.AccessFailedCount;
 
             return Task.FromResult<ApplicationUser>(user);
         }
@@ -185,7 +181,7 @@ namespace AuthPoc.Web.Models
         public Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed)
         {
             var users = Helper.DeserializeFromXML<List<ApplicationUser>>();
-            var userIndex = users.IndexOf(user); //    users.Find(u => u.Id.Equals(user.Id));
+            var userIndex = users.IndexOf(user); 
             user.EmailConfirmed = confirmed;
             users[userIndex] = user;
             Helper.SerializeToXML<List<ApplicationUser>>(users);
@@ -215,27 +211,49 @@ namespace AuthPoc.Web.Models
             return Task.FromResult(response);
         }
 
-       public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
         {
-            return Task.FromResult(1);
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.IncrementAccessFailedCountAsync(user.Id);
+            return Task.FromResult(0);
         }
 
         public Task ResetAccessFailedCountAsync(ApplicationUser user)
         {
-            return Task.FromResult(0);
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.ResetAccessFailedCountAsync(user.Id);
+            return response;
         }
 
         public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
         {
-            return Task.FromResult(1);
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.SetLockoutEnabledAsync(user.Id);
+            return response;
         }
 
         public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
         {
-            return Task.FromResult(1);
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.SetLockoutEndDateAsync(user.Id, lockoutEnd);
+            return response;
         }
         #endregion
 
+        #region TwoFactorEnabled
+        public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
+        {
+            return Task.FromResult(0);
+        }
+
+        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
+        {
+            var factory = new WebClientsFactory();
+            var response = factory.AccountWebClient.GetTwoFactorEnabledAsync(user.Id).Result;
+            return Task.FromResult(response);
+        }
+        #endregion    
+    
         #region RoleStore
         public Task AddToRoleAsync(ApplicationUser user, string roleName)
         {
@@ -266,18 +284,10 @@ namespace AuthPoc.Web.Models
         }
         #endregion
 
-        #region TwoFactorEnabled
-        public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
+        public void Dispose()
         {
-            return Task.FromResult(0);
+
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
-        {
-            var factory = new WebClientsFactory();
-            var response = factory.AccountWebClient.GetTwoFactorEnabledAsync(user.Id).Result;
-            return Task.FromResult(response);
-        }
-        #endregion        
     }
 }

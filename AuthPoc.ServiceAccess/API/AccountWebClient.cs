@@ -20,6 +20,12 @@ namespace AuthPoc.ServiceAccess.API
             return Get<List<ValueDTO>>();
         }
 
+        public Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModelDto model)
+        {
+            var response = Post<IHttpActionResult>("ChangePassword", JsonConvert.SerializeObject(model));
+            return Task.FromResult(response);
+        }
+
         public IEnumerable<ApplicationUserDTO> GetUsers()
         {
             var response = Get<List<ApplicationUserDTO>>("GetUsers");
@@ -37,21 +43,21 @@ namespace AuthPoc.ServiceAccess.API
             return Task.FromResult<object>(null);
         }
 
-        public Task DeleteAsync(ApplicationUserDTO user)
+        public Task DeleteAsync(int userId)
         {
-            if (user == null)
+            var model = new UserIdModelDto
             {
-                throw new ArgumentNullException("user");
-            }
+                UserId = userId
+            };
 
-            var response = Post<Task>("DeleteAsync", JsonConvert.SerializeObject(user));
+            var response = Post<Task>("DeleteAsync", JsonConvert.SerializeObject(model));
 
             return Task.FromResult<object>(null);
         }
 
         public Task<ApplicationUserDTO> FindByNameAsync(string userName)
         {
-            var model = new FindUserByNameModelDTO
+            var model = new FindUserByNameModelDto
             {
                 UserName = userName
             };
@@ -61,7 +67,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<ApplicationUserDTO> FindByIdAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -71,7 +77,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<ApplicationUserDTO> FindByEmailAsync(string email)
         {
-            var model = new FindUserByEmailModelDTO
+            var model = new FindUserByEmailModelDto
             {
                 Email = email
             };
@@ -81,7 +87,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<string> GetPasswordHashAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -91,7 +97,7 @@ namespace AuthPoc.ServiceAccess.API
         
         public Task SetPasswordHashAsync(int userId, string passwordHash)
         {
-            var model = new SetPasswordHashModelDTO
+            var model = new SetPasswordHashModelDto
             {
                 UserId = userId,
                 PasswordHash = passwordHash
@@ -103,7 +109,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<int> GetAccessFailedCountAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -113,7 +119,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<bool> GetTwoFactorEnabledAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -121,9 +127,10 @@ namespace AuthPoc.ServiceAccess.API
             return Task.FromResult(response);
         }
 
+        #region LockOutStore
         public Task<DateTimeOffset> GetLockoutEndDateAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -132,17 +139,58 @@ namespace AuthPoc.ServiceAccess.API
         }
         public Task<bool> GetLockoutEnabledAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
             var response = Post<bool>("GetLockoutEnabledAsync", JsonConvert.SerializeObject(model));
             return Task.FromResult(response);
         }
-        
+
+        public Task<int> IncrementAccessFailedCountAsync(int userId)
+        {
+            var model = new UserIdModelDto
+            {
+                UserId = userId
+            };
+            var response = Post<int>("IncrementAccessFailedCountAsync", JsonConvert.SerializeObject(model));
+            return Task.FromResult(response);
+        }
+
+        public Task ResetAccessFailedCountAsync(int userId)
+        {
+            var model = new UserIdModelDto
+            {
+                UserId = userId
+            };
+            var response = Post<Task>("ResetAccessFailedCountAsync", JsonConvert.SerializeObject(model));
+            return Task.FromResult(response);
+        }
+
+        public Task SetLockoutEnabledAsync(int userId)
+        {
+            var model = new UserIdModelDto
+            {
+                UserId = userId
+            };
+            var response = Post<Task>("SetLockoutEnabledAsync", JsonConvert.SerializeObject(model));
+            return Task.FromResult(response);
+        }
+
+        public Task SetLockoutEndDateAsync(int userId, DateTimeOffset lockoutEnd)
+        {
+            var model = new UserIdModelDto
+            {
+                UserId = userId
+            };
+            var response = Post<Task>("SetLockoutEndDateAsync", JsonConvert.SerializeObject(model));
+            return Task.FromResult(response);
+        }
+        #endregion
+
         public Task<string> GetEmailAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -176,7 +224,7 @@ namespace AuthPoc.ServiceAccess.API
         #region RoleStore
         public Task AddToRoleAsync(int userId, string roleName)
         {
-            var model = new UserRoleModelDTO
+            var model = new UserRoleModelDto
             {
                 RoleName = roleName,
                 UserId = userId
@@ -187,7 +235,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<IList<string>> GetRolesAsync(int userId)
         {
-            var model = new UserIdModelDTO
+            var model = new UserIdModelDto
             {
                 UserId = userId
             };
@@ -198,7 +246,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task<bool> IsInRoleAsync(int userId, string roleName)
         {
-            var model = new UserRoleModelDTO
+            var model = new UserRoleModelDto
             {
                 RoleName = roleName,
                 UserId = userId
@@ -209,7 +257,7 @@ namespace AuthPoc.ServiceAccess.API
 
         public Task RemoveFromRoleAsync(int userId, string roleName)
         {
-            var model = new UserRoleModelDTO
+            var model = new UserRoleModelDto
             {
                 RoleName = roleName,
                 UserId = userId

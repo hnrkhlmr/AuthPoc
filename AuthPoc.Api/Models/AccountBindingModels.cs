@@ -20,6 +20,17 @@ namespace AuthPoc.Api.Models
         public int UserId { get; set; }
     }
 
+    public class SetLockoutEndModel
+    {
+        public int UserId { get; set; }
+        public DateTimeOffset LockoutEnd { get; set; }
+    }
+    public class SetLockoutEnabledModel
+    {
+        public int UserId { get; set; }
+        public bool Enabled { get; set; }
+    }
+
     public class SetPasswordHashModel
     {
         public int UserId { get; set; }
